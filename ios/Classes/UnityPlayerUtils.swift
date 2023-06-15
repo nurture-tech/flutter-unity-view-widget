@@ -116,31 +116,23 @@ var sharedApplication: UIApplication?
             completed(controller?.rootView)
             return
         }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            DispatchQueue.main.async {
+                // Always keep Flutter window on top
+                let flutterLevel = UIWindow.Level.normal.rawValue + 1.0
+                UIApplication.shared.keyWindow?.windowLevel = UIWindow.Level(flutterLevel)
 
-        NotificationCenter.default.addObserver(forName: NSNotification.Name("UnityReady"), object: nil, queue: OperationQueue.main, using: { note in
-            self._isUnityReady = true
-            completed(controller?.rootView)
-        })
+                self.initUnity()
+                self._isUnityReady = true
+                completed(controller?.rootView)
+                self.listenAppState()
+            }
 
-        DispatchQueue.main.async {
-//            if (sharedApplication == nil) {
-//                sharedApplication = UIApplication.shared
-//            }
 
-            // Always keep Flutter window on top
-//            let flutterUIWindow = sharedApplication?.keyWindow
-//            flutterUIWindow?.windowLevel = UIWindow.Level(UIWindow.Level.normal.rawValue + 1) // Always keep Flutter window in top
-//            sharedApplication?.keyWindow?.windowLevel = UIWindow.Level(UIWindow.Level.normal.rawValue + 1)
-
-            self.initUnity()
-
-            unity_warmed_up = true
-            self._isUnityReady = true
-            self._isUnityLoaded = true
-
-            self.listenAppState()
-
-            completed(controller?.rootView)
+            NotificationCenter.default.addObserver(forName: NSNotification.Name("UnityReady"), object: nil, queue: OperationQueue.main, using: { note in
+                self._isUnityReady = true
+                completed(controller?.rootView)
+            })
         }
 
     }
