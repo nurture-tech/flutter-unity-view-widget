@@ -87,35 +87,35 @@ public class FLTUnityWidgetController: NSObject, FLTUnityOptionsSink, FlutterPla
 
     private func startUnityIfNeeded() {
         GetUnityPlayerUtils().createPlayer(completed: { [self] (view: UIView?) in
-
+            GetUnityPlayerUtils().showUnityWindow();
         })
     }
 
     func attachView() {
         startUnityIfNeeded()
 
-        let unityView = GetUnityPlayerUtils().ufw?.appController()?.rootView
-        if let superview = unityView?.superview {
-            unityView?.removeFromSuperview()
-            superview.layoutIfNeeded()
-        }
-
-        if let unityView = unityView {
-            _rootView.addSubview(unityView)
-            _rootView.layoutIfNeeded()
-            self.channel?.invokeMethod("events#onViewReattached", arguments: "")
-        }
+//        let unityView = GetUnityPlayerUtils().ufw?.appController()?.rootView
+//        if let superview = unityView?.superview {
+//            unityView?.removeFromSuperview()
+//            superview.layoutIfNeeded()
+//        }
+//
+//        if let unityView = unityView {
+//            _rootView.addSubview(unityView)
+//            _rootView.layoutIfNeeded()
+//            self.channel?.invokeMethod("events#onViewReattached", arguments: "")
+//        }
         GetUnityPlayerUtils().resume()
     }
 
     func reattachView() {
-        let unityView = GetUnityPlayerUtils().ufw?.appController()?.rootView
-        let superview = unityView?.superview
-        if superview != _rootView {
-            attachView()
-        }
-
-        GetUnityPlayerUtils().resume()
+//        let unityView = GetUnityPlayerUtils().ufw?.appController()?.rootView
+//        let superview = unityView?.superview
+//        if superview != _rootView {
+//            attachView()
+//        }
+//
+//        GetUnityPlayerUtils().resume()
     }
 
     func removeViewIfNeeded() {
@@ -123,15 +123,16 @@ public class FLTUnityWidgetController: NSObject, FLTUnityOptionsSink, FlutterPla
             return
         }
 
-        let unityView = GetUnityPlayerUtils().ufw?.appController()?.rootView
-        if _rootView == unityView?.superview {
-            if globalControllers.isEmpty {
-                unityView?.removeFromSuperview()
-                unityView?.superview?.layoutIfNeeded()
-            } else {
-                globalControllers.last?.reattachView()
-            }
-        }
+//        let unityView = GetUnityPlayerUtils().ufw?.appController()?.rootView
+//        
+//        if _rootView == unityView?.superview {
+//            if globalControllers.isEmpty {
+//                unityView?.removeFromSuperview()
+//                unityView?.superview?.layoutIfNeeded()
+//            } else {
+//                globalControllers.last?.reattachView()
+//            }
+//        }
         GetUnityPlayerUtils().resume()
     }
 
@@ -143,11 +144,11 @@ public class FLTUnityWidgetController: NSObject, FLTUnityOptionsSink, FlutterPla
         globalControllers.removeAll{ value in
             return value == self
         }
-
+        
         channel?.setMethodCallHandler(nil)
         removeViewIfNeeded()
-        
         _disposed = true
+        GetUnityPlayerUtils().hideUnityWindow();
     }
     
     /// Handles messages from unity in the current view

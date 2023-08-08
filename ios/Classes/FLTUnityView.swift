@@ -12,8 +12,8 @@ import UnityFramework
 class FLTUnityView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
-        if (!self.bounds.isEmpty) {
-            GetUnityPlayerUtils().ufw?.appController()?.rootView.frame = self.bounds
-        }
+//        if (!self.bounds.isEmpty) {
+//            GetUnityPlayerUtils().ufw?.appController()?.rootView.frame = self.bounds
+//        }
     }
 }

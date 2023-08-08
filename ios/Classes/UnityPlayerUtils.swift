@@ -81,7 +81,7 @@ var sharedApplication: UIApplication?
 
     func initUnity() {
         if (self.unityIsInitiallized()) {
-            self.ufw?.showUnityWindow()
+            showUnityWindow()
             return
         }
 
@@ -100,6 +100,71 @@ var sharedApplication: UIApplication?
         }
         _isUnityLoaded = true
     }
+    
+    func hideUnityWindow() {
+        GetUnityPlayerUtils().ufw?.appController()?.window?.windowLevel = UIWindow.Level(UIWindow.Level.normal.rawValue - 1);
+        GetUnityPlayerUtils().ufw?.appController()?.window.isHidden = true;
+
+        let allScenes = UIApplication.shared.connectedScenes
+        let scene = allScenes.first { $0.activationState == .foregroundActive }
+
+        if let windowScene = scene as? UIWindowScene {
+            var keyWindow = windowScene.windows.first { w in
+                w != GetUnityPlayerUtils().ufw?.appController()?.window;
+            }
+            keyWindow?.makeKeyAndVisible();
+            if #available(iOS 16.0, *) {
+//                DispatchQueue.main.async {
+//                    windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .landscape)) { error in
+//                        print(error)
+//                        print(windowScene.effectiveGeometry ?? "")
+//                    }
+//                }
+//                keyWindow?.rootViewController?.setNeedsUpdateOfSupportedInterfaceOrientations();
+            } else {
+//                UIDevice.current.setValue(UIInterfaceOrientation.landscapeLeft.rawValue, forKey: "orientation")
+            }
+        }
+        
+    }
+    
+    func showUnityWindow() {
+//        UIApplication.shared.delegate?.window??.windowLevel = UIWindow.Level(UIWindow.Level.normal.rawValue - 1);
+        self.ufw?.appController()?.window?.windowLevel = UIWindow.Level(UIWindow.Level.normal.rawValue + 1)
+        self.ufw?.appController()?.window.isHidden = false;
+        self.ufw?.appController()?.window.makeKeyAndVisible();
+
+        let allScenes = UIApplication.shared.connectedScenes
+        let scene = allScenes.first { $0.activationState == .foregroundActive }
+        if let windowScene = scene as? UIWindowScene {
+            if #available(iOS 16.0, *) {
+//                DispatchQueue.main.async {
+//                    windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .landscape)) { error in
+//                        print(error)
+//                        print(windowScene.effectiveGeometry ?? "")
+//                    }
+//                }
+
+//                self.ufw?.appController()?.window?.rootViewController?.setNeedsUpdateOfSupportedInterfaceOrientations();
+//
+//                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+//                    self.ufw?.appController()?.rootView.frame = self.ufw!.appController()!.window.bounds;
+//                    self.ufw?.appController()?.window.setNeedsLayout();
+//                    self.ufw?.appController()?.window.layoutSubviews();
+//                    self.ufw?.appController()?.window?.rootViewController?.view.superview?.setNeedsLayout();
+//                    self.ufw?.appController()?.window?.rootViewController?.view.superview?.layoutSubviews();
+//                }
+//
+
+
+
+            } else {
+//                UIDevice.current.setValue(UIInterfaceOrientation.landscapeLeft.rawValue, forKey: "orientation")
+            }
+        }
+        self.ufw?.showUnityWindow()
+        
+    }
 
     // check if unity is initiallized
     func unityIsInitiallized() -> Bool {
@@ -116,23 +181,34 @@ var sharedApplication: UIApplication?
             completed(controller?.rootView)
             return
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            DispatchQueue.main.async {
-                // Always keep Flutter window on top
-                let flutterLevel = UIWindow.Level.normal.rawValue + 1.0
-                UIApplication.shared.keyWindow?.windowLevel = UIWindow.Level(flutterLevel)
 
-                self.initUnity()
-                self._isUnityReady = true
-                completed(controller?.rootView)
-                self.listenAppState()
-            }
+        NotificationCenter.default.addObserver(forName: NSNotification.Name("UnityReady"), object: nil, queue: OperationQueue.main, using: { note in
+            self._isUnityReady = true
+            completed(controller?.rootView)
+        })
 
+        DispatchQueue.main.async {
+//            if (sharedApplication == nil) {
+//                sharedApplication = UIApplication.shared
+//            }
 
-            NotificationCenter.default.addObserver(forName: NSNotification.Name("UnityReady"), object: nil, queue: OperationQueue.main, using: { note in
-                self._isUnityReady = true
-                completed(controller?.rootView)
-            })
+            // Always keep Flutter window on top
+//            let flutterUIWindow = sharedApplication?.keyWindow
+//            flutterUIWindow?.windowLevel = UIWindow.Level(UIWindow.Level.normal.rawValue + 1) // Always keep Flutter window in top
+//            sharedApplication?.keyWindow?.windowLevel = UIWindow.Level(UIWindow.Level.normal.rawValue + 1)
+
+            self.initUnity()
+
+            // Always keep Flutter window on top
+        //    UIApplication.shared.keyWindow?.windowLevel = UIWindow.Level(UIWindow.Level.normal.rawValue + 1)
+
+            unity_warmed_up = true
+            self._isUnityReady = true
+            self._isUnityLoaded = true
+
+            self.listenAppState()
+
+            completed(controller?.rootView)
         }
 
     }
@@ -175,9 +251,10 @@ var sharedApplication: UIApplication?
             unityAppController?.applicationDidBecomeActive(application)
         } else if notification?.name == UIApplication.willTerminateNotification {
             unityAppController?.applicationWillTerminate(application)
-        } else if notification?.name == UIApplication.didReceiveMemoryWarningNotification {
-            unityAppController?.applicationDidReceiveMemoryWarning(application)
         }
+//        else if notification?.name == UIApplication.didReceiveMemoryWarningNotification {
+//            unityAppController?.applicationDidReceiveMemoryWarning(application)
+//        }
     }
 
 
@@ -250,6 +327,7 @@ var sharedApplication: UIApplication?
     }
 
     func unitySceneLoadedHandlers(name: UnsafePointer<Int8>?, buildIndex: UnsafePointer<Int32>?, isLoaded: UnsafePointer<Bool>?, isValid: UnsafePointer<Bool>?) {
+        
         if let sceneName = name,
            let bIndex = buildIndex,
            let loaded = isLoaded,
